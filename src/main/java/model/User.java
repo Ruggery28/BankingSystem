@@ -14,7 +14,14 @@ public class User {
     private String username;
     private String password;
 
-    //Constructor later...
+    public User(){
+        
+    }
+    
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
     
     public int getId() {
         return id;

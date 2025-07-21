@@ -19,10 +19,18 @@
             <version>${jakartaee}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Dependency to connect with Mysql -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version> <!-- check for the latest version if needed -->
+        </dependency>
+        <!-- Dependency to hash the password -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
     

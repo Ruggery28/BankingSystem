@@ -8,7 +8,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import model.User;
 import utils.DBConnection;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  *
@@ -19,6 +21,7 @@ public class UserDAO {
     //Method to ADD a new user to database
     public boolean registerUser(String username, String password) {
 
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt()); 
         String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
 
         /*TRY and CATCH to connect the database server with Connection calling
@@ -27,7 +30,7 @@ public class UserDAO {
 
             //inserting 
             stmt.setString(1, username);
-            stmt.setString(2, password);
+            stmt.setString(2, hashedPassword);
 
             int rowsInsert = stmt.executeUpdate();
             return rowsInsert > 0;
@@ -39,27 +42,51 @@ public class UserDAO {
 
     }
 
-    public boolean loginUser(String username, String password){
-        
+    public boolean loginUser(String username, String password) {
+
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-        
-        try(Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)){
-            
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, username);
             stmt.setString(2, password);
-            
+
             ResultSet rs = stmt.executeQuery();
             return rs.next(); // If there is a match
-            
-        } catch(SQLException e){
+
+        } catch (SQLException e) {
             System.out.println("Error finding user: " + e.getMessage());
             return false;
         }
-        
-        
     }
-    
-    
-    
-    
+
+    public User validateUser(String username, String password) {
+
+        User user = null;
+
+        try (Connection conn = DBConnection.getConnection()) {
+
+            String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                user = new User();
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setPassword(rs.getString("password"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return user;
+    }
+
+
 }
