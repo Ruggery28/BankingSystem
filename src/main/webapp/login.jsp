@@ -14,9 +14,9 @@
     <body>
         <h2>User Login</h2>
         <form action="LoginServlet" method="post">
-            Username: <input type="text" name="username" required><br><br>
-            Password: <input type="password" name="password" required><br><br>
-            <input type="submit" value="Login">
+            <input type="text" name="username" placeholder="Username" required><br><br>
+            <input type="password" name="password" placeholder="Password" required><br><br>
+            <button type="submit">Login</button>
         </form>
 
         <% String error = (String) request.getAttribute("error");

@@ -4,6 +4,8 @@
  */
 package controller;
 
+import com.mysql.cj.xdevapi.PreparableStatement;
+import com.mysql.cj.xdevapi.Result;
 import dao.UserDAO;
 import jakarta.servlet.RequestDispatcher;
 import java.io.IOException;
@@ -14,7 +16,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import model.User;
+import org.mindrot.jbcrypt.BCrypt;
+import utils.DBConnection;
 
 /**
  *
@@ -75,37 +83,51 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-       
+
         String username = request.getParameter("username");
         String password = request.getParameter("password");
 
-        UserDAO dao = new UserDAO();
-        User user = dao.validateUser(username, password);
+        try (Connection conn = DBConnection.getConnection()) {
 
-        if (user != null) {
-            HttpSession session = request.getSession();
-            session.setAttribute("user", user);
-            response.sendRedirect("home.jsp");
-        } else {
+            // Step 1: Get the stored hash for the given username
+            String sql = "SELECT password FROM users WHERE username = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, username);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String storedHash = rs.getString("password");
+
+                // Step 2: Check password against stored hash
+                if (BCrypt.checkpw(password, storedHash)) {
+                    //  Success - store user info in session
+                    User loggedInUser = new User(username);
+                    request.getSession().setAttribute("user", loggedInUser);
+
+                    // Redirect to welcome/dashboard page
+                    response.sendRedirect("home.jsp");
+                    return;
+                }
+            }
+
+            //  Invalid username or password
             request.setAttribute("error", "Invalid username or password");
-            RequestDispatcher rd = request.getRequestDispatcher("login.jsp");
-            rd.forward(request, response);
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+
+        } catch (SQLException e) {
+            throw new ServletException("Database error during login", e);
         }
     }
-        
-        
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
 
-    @Override
-    public String getServletInfo() {
+/**
+ * Returns a short description of the servlet.
+ *
+ * @return a String containing servlet description
+ */
+@Override
+public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-        
-    }
 
-
-
+}

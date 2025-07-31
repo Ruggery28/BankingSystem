@@ -23,7 +23,7 @@
         <title>Home Page</title>
     </head>
     <body>
-        <h2>Welcome, <%= user.getUsername()%>!</h2>
+        <h2>Welcome, <%= user.getUsername() %>!</h2>
         <a href="logout.jsp">Logout</a>
     </body>
 </html>

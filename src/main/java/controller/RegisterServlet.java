@@ -13,7 +13,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.mindrot.jbcrypt.BCrypt;
 import utils.DBConnection;
 
 /**
@@ -81,10 +83,26 @@ public class RegisterServlet extends HttpServlet {
 
         try (Connection conn = DBConnection.getConnection()) {
 
+            String checkSql = "SELECT COUNT(*) FROM users WHERE username = ?";
+            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+            checkStmt.setString(1, username);
+            
+            ResultSet rs = checkStmt.executeQuery();
+            rs.next(); //move to the first row
+            int count = rs.getInt(1); //get the value of COUNT(*)
+            
+            if(count > 0){
+                request.setAttribute("error", "Username already exists");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                return; //stop here the code
+            }
+            
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt()); //hashing the password before setting it
+            
             String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, username);
-            stmt.setString(2, password);
+            stmt.setString(2, hashedPassword);
 
             int rowsInserted = stmt.executeUpdate();
 

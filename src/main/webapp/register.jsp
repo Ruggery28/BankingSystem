@@ -18,6 +18,11 @@
             Password: <input type="password" name="password" required><br><br>
             <input type="submit" value="Register">
         </form>
+        
+        <% if (request.getAttribute("error") != null) {%>
+        <p style="color:red;"><%= request.getAttribute("error")%></p>
+        <% }%>
+        
         <p>Already have an account? <a href="login.jsp">Login here</a></p>
     </body>
 </html>
