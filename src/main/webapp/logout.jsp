@@ -13,8 +13,10 @@
     </head>
     <body>
         <%
-            // End the user session
-            session.invalidate();
+            // Invalidate the current session
+            if (session != null) {
+                session.invalidate();
+            }
 
             // Redirect to login page
             response.sendRedirect("login.jsp");
